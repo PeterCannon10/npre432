@@ -10,7 +10,6 @@ HARDNESS_DATA = 'N-02-hard_d.txt'
 SKIP_ROWS = 30 #changes on a per-file basis, this is the rows to skip for stress testing. Look at raw data to inform skiprows.
 
 def csv_to_array(csv_filename):
-    print(f"{DATA_DIR}/{csv_filename}")
     return pd.read_csv(os.path.join(DATA_DIR, csv_filename), skiprows=SKIP_ROWS).to_numpy()
 
 def create_material_dataset():
