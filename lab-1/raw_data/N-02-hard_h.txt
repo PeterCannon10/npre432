@@ -1,0 +1,2 @@
+N-02-hardProgram:	Hardness DataDate: 	Mon, Aug 31, 2026Time: 	6:04 PMName: 	NPRE-432Materials: 7075-T6_AL	4340Stl	7075-T6_AL	4340Stl	7075-T6_AL	4340Stl
+
