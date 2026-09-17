@@ -115,6 +115,32 @@ def plot_stress_strain_curves():
     plt.savefig(os.path.join(IMAGES_DIR, 'stress_strain_curves_zoomed.png'))
     plt.close()
 
+def plot_true_stress_strain_curves():
+    """
+    Only plot for aluminum 7075, account for true stress and true strain and engineering stress and engineering strain.
+    """
+    arrays = create_material_dataset()
+    material_names = ['Aluminum 7075']
+    diameters = [12.72] #fetched from raw data by hand, averaged before and after for metals in mm
+    colors = ['#2935CF', "red"]
+    cross_sectional_areas = [np.pi * (d/2)**2 for d in diameters] #in mm^2
+
+    plt.figure()
+    plt.xlabel("Strain")
+    plt.ylabel("Stress (MPa)")
+    for i in range(len(material_names)):
+        time, displacement, force, composite_strain = separate_material_columns(arrays[i])
+        engineering_stress = force / cross_sectional_areas[i] * 1000 #in MPa
+        engineering_strain = composite_strain
+        true_stress = engineering_stress * (1 + engineering_strain)
+        true_strain = np.log(1 + engineering_strain)
+        plt.plot(engineering_strain, engineering_stress, label='Engineering Stress-Strain', color=colors[0], linestyle='--')
+        plt.plot(true_strain, true_stress, label='True Stress-Strain', color=colors[1], linestyle='-.')
+    plt.legend()
+    plt.grid()
+    plt.savefig(os.path.join(IMAGES_DIR, 'true_vs_engineering_stress_strain_curves.png'))
+    plt.close()
+
 def calculate_material_properties():
     """
     Deliverable 4: Compute & tabulate elastic modulus, engineering 0.2% offset yield strength, and ultimate strength.
@@ -138,6 +164,7 @@ def main():
     print_hardness_statistics(calculate_hardness_statistics())
     plot_stress_strain_curves()
     calculate_material_properties()
+    plot_true_stress_strain_curves()
 
 if __name__ == "__main__":
     main()
