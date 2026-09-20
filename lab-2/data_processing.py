@@ -79,7 +79,7 @@ def main():
     Deliverable 2
     """
     for j in range(len(file_names)):
-        print(find_properties(stress, strain, initial_gage_diameters[i], final_gage_diameters[i]))
+        print(find_properties(stress, strain, initial_gage_diameters[j], final_gage_diameters[j]))
     
     
 
