@@ -11,12 +11,13 @@ def csv_to_array(csv_filename, skip_rows):
     return pd.read_csv(os.path.join(DATA_DIR, csv_filename), skiprows=skip_rows).to_numpy()
 
 def find_properties(stress, strain, initial_gage_diameter, final_gage_diameter):
+    print(stress.shape, strain.shape, initial_gage_diameter.shape, final_gage_diameter.shape)
     elastic_modulus = stress/strain
     yield_strength = stress[np.where(strain >= 0.002)[0][0]]
     ultimate_strength = np.max(stress)
     elongation_percent = 100 * ((final_gage_diameter-initial_gage_diameter)/initial_gage_diameter)
     resilience_modulus = yield_strength**2/(2*elastic_modulus)
-    return np.array([elastic_modulus, yield_strength, ultimate_strength, elongation_percent, resilience_modulus])
+    return np.array([elastic_modulus, yield_strength, ultimate_strength, elongation_percent, resilience_modulus], dtype=object)
 
 def main():
     #[304SS, 1018CR, 1045NM, 2024, BR, PMMA]
@@ -45,6 +46,8 @@ def main():
     plt.figure()
     for material in file_names:
         time, displacement, force, strain = dataset[i]
+        force = np.array(force)
+        strain = np.array(strain)
         area = np.pi * (initial_gage_diameters[i]/2)**2
         stress = force/area
         
