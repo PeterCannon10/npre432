@@ -45,7 +45,7 @@ def main():
     plt.figure()
     for material in file_names:
         time, displacement, force, strain = dataset[i]
-        area = 1 #TEMP FIX THIS
+        area = np.pi * (initial_gage_diameters[i]/2)**2
         stress = force/area
         
         material_label = material[4:-6]
