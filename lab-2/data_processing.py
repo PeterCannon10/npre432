@@ -11,11 +11,10 @@ def csv_to_array(csv_filename, skip_rows):
     return pd.read_csv(os.path.join(DATA_DIR, csv_filename), skiprows=skip_rows).to_numpy()
 
 def find_properties(stress, strain, initial_gage_diameter, final_gage_diameter):
-    print(stress.shape, strain.shape, initial_gage_diameter.shape, final_gage_diameter.shape)
     elastic_modulus = stress/strain
     yield_strength = stress[np.where(strain >= 0.002)[0][0]]
     ultimate_strength = np.max(stress)
-    elongation_percent = 100 * ((final_gage_diameter-initial_gage_diameter)/initial_gage_diameter)
+    elongation_percent = 100 * (abs(final_gage_diameter-initial_gage_diameter)/initial_gage_diameter)
     resilience_modulus = yield_strength**2/(2*elastic_modulus)
     return np.array([elastic_modulus, yield_strength, ultimate_strength, elongation_percent, resilience_modulus], dtype=object)
 
@@ -49,10 +48,9 @@ def main():
         force = np.array(force)
         strain = np.array(strain)
         area = np.pi * (initial_gage_diameters[i]/2)**2
-        stress = force/area
+        stress = force/area * 1000 #MPa
         
         material_label = material[4:-6]
-        print(material_label)
         if material_label == "PMMA":
             plt.savefig(os.path.join(IMAGES_DIR, 'stress_strain_curves.png'))
             plt.close()
@@ -79,9 +77,63 @@ def main():
     Deliverable 2
     """
     for j in range(len(file_names)):
-        print(find_properties(stress, strain, initial_gage_diameters[j], final_gage_diameters[j]))
+        find_properties(stress, strain, initial_gage_diameters[j], final_gage_diameters[j])
     
-    
+    """
+    Deliverable 3
+    """
+    for j in range(len(file_names)-2):
+        time, displacement, force, strain = dataset[j]
+        force = np.array(force)
+        strain = np.array(strain)
+        area = np.pi * (initial_gage_diameters[j]/2)**2
+        stress = force/area * 1000
+        hardness = rockwell_hardness[j]
+        
+        elastic_modulus, yield_strength, ultimate_strength, elongation_percent, resilience_modulus = find_properties(stress, strain, initial_gage_diameters[j], final_gage_diameters[j])
+
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+
+        ax1.plot(hardness, elastic_modulus, color=COLORS[0])
+        ax1.set_xlabel('Rockwell Hardness B-scale (HRB)')
+        ax1.set_ylabel('Elastic Modulus (MPa)')
+        ax1.grid()
+
+        ax2.plot(hardness, yield_strength, color=COLORS[1], label="Yield Strength")
+        ultimate_strengths = np.full(len(rockwell_hardness), ultimate_strength)
+        ax2.plot(hardness, ultimate_strengths, color = COLORS[2], label="Ultimate Strength")
+        ax2.set_xlabel('Rockwell Hardness B-scale (HRB)')
+        ax2.set_ylabel('Strength (MPa)')
+        ax2.legend()
+        ax2.grid()
+
+        ax3.plot(hardness, elongation_percent, color=COLORS[3])
+        ax3.set_xlabel('Rockwell Hardness B-scale (HRB)')
+        ax3.set_ylabel('Elongation (%)')
+        ax3.grid()
+
+        ax4.plot(hardness, resilience_modulus, color=COLORS[4])
+        ax4.set_xlabel('Rockwell Hardness B-scale (HRB)')
+        ax4.set_ylabel('Modulus of Resilience (MPa)')
+        ax4.grid()
+
+        match j:
+            case 0:
+                material_name='304SS'
+            case 1:
+                material_name='1018CR'
+            case 2:
+                material_name='1045NM'
+            case 3:
+                material_name='2024'
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(IMAGES_DIR, f'{material_name}_dev3.png'))
+        plt.close()
+
+
+
+            
 
 
 
