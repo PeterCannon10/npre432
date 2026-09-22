@@ -4,42 +4,60 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 DATA_DIR = 'raw_data'
+DATA_DIR_LAB1 = 'raw_data_lab1'
 IMAGES_DIR = 'images'
 COLORS = ["#E63946", "#F4A261", "#2A9D8F", "#457B9D", "#7B2CBF", "#264653"]
 
-def csv_to_array(csv_filename, skip_rows):
-    return pd.read_csv(os.path.join(DATA_DIR, csv_filename), skiprows=skip_rows).to_numpy()
+def csv_to_array(csv_filename, skip_rows, directory=DATA_DIR):
+    return pd.read_csv(os.path.join(directory, csv_filename), skiprows=skip_rows).to_numpy()
 
-def find_properties(stress, strain, initial_gage_diameter, final_gage_diameter, idx):
-    match idx:
-        case 0:
-            #304SS
-            low = 0.0
-            high = 0.005
-        case 1:
-            #1018CR
-            low = 0
-            high = 0.025
-        case 2:
-            #1045NM
-            low = 0
-            high = 0.085
-        case 3:
-            #2024
-            low = 0
-            high = 0.01
-        case 4:
-            #BR
-            low = 0.0
-            high = 0.005
-        case 5:
-            #PMMA
-            low = 0
-            high = 0.045
-        case 6:
-            #1045CR
-            low = 0
-            high = 0.04
+def find_properties(stress, strain, initial_gage_diameter, final_gage_diameter, idx, is_lab1 = False):
+    if is_lab1 == False:
+        match idx:
+            case 0:
+                #304SS
+                low = 0.0
+                high = 0.005
+            case 1:
+                #1018CR
+                low = 0
+                high = 0.025
+            case 2:
+                #1045NM
+                low = 0
+                high = 0.085
+            case 3:
+                #2024
+                low = 0
+                high = 0.01
+            case 4:
+                #BR
+                low = 0.0
+                high = 0.005
+            case 5:
+                #PMMA
+                low = 0
+                high = 0.045
+            case 6:
+                #1045CR
+                low = 0
+                high = 0.04
+    else:
+        match idx:
+            case 0:
+                #1018CR
+                low = 0.0
+                high = 0.0025
+            case 1:
+                #1045NM
+                low = 0
+                high = 0.0015
+            case 2:
+                #7075
+                low = 0
+                high = 0.0075
+    print(high)
+    print(np.argwhere(strain > high))
     elastic_modulus_idx = np.argwhere(strain > high)[0][0]
     elastic_modulus = (stress[elastic_modulus_idx]-stress[0])/(strain[elastic_modulus_idx]-strain[0])
     yield_strength = stress[elastic_modulus_idx]
@@ -85,6 +103,46 @@ def correct_hardness():
     #print(corrected_hardness) #Result: [103.08855556  96.91188889  95.27333333  78.49666667  73.01222222 0. 107.16111111]
     return corrected_hardness
 
+def integrate_discrete(x: np.ndarray, y: np.ndarray) -> float:
+    """
+    Calculates the definite integral (area under the curve) for discrete 
+    (x, y) data points using the Trapezoidal Rule.
+    
+    Parameters:
+        x (np.ndarray): 1D array of x-coordinates.
+        y (np.ndarray): 1D array of y-coordinates matching x.
+        
+    Returns:
+        float: The total area under the curve.
+    """
+    x = np.asarray(x)
+    y = np.asarray(y)
+    
+    if x.shape != y.shape:
+        raise ValueError("x and y arrays must have the same shape.")
+    if len(x) < 2:
+        raise ValueError("At least 2 points are required to calculate an integral.")
+        
+    # Sort x and y by x-values if x is not strictly increasing
+    if not np.all(np.diff(x) >= 0):
+        sort_indices = np.argsort(x)
+        x = x[sort_indices]
+        y = y[sort_indices]
+
+    # Calculate integral using standard numerical integration
+    # Note: Use np.trapz(y, x=x) if running NumPy version < 2.0
+    return float(np.trapezoid(y, x=x))
+
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    # Example: Integrate y = x^2 from x = 0 to 4
+    x_data = np.linspace(0, 4, 100)
+    y_data = x_data ** 2
+    
+    area = integrate_discrete(x_data, y_data)
+    print(f"Calculated Area: {area:.4f}")  # Analytical answer is (4^3)/3 = 21.3333
+
 def main():
     #[304SS, 1018CR, 1045NM, 2024, BR, PMMA, 1045CR]
     initial_gage_diameters = np.array([7.14, 7.14, 7, 7.15, 7.08, 7.99, 7.26]) #diameters in mm
@@ -106,7 +164,20 @@ def main():
         data_array = csv_to_array(csv, skip_rows).T
         dataset.append(data_array)
 
-    print(file_names)
+    dataset_lab1 = []
+    file_names_lab1 = []
+    for csv in os.listdir(DATA_DIR_LAB1):
+        if csv.endswith('csv'):
+            file_names_lab1.append(csv)
+            match csv:
+                case "N02C7075_1.csv":
+                    skip_rows = 29
+                case "N02D1045NM_1.csv":
+                    skip_rows = 30
+                case "N02D1018CR_1.csv":
+                    skip_rows = 30
+        data_array_lab1 = csv_to_array(csv, skip_rows, DATA_DIR_LAB1).T
+        dataset_lab1.append(data_array_lab1)
 
     """
     Deliverable 1
@@ -124,15 +195,15 @@ def main():
             case 0:
                 #304SS
                 low = 0.0
-                high = 0.005
+                high = 0.0075
             case 1:
                 #1018CR
                 low = 0
-                high = 0.025
+                high = 0.021
             case 2:
                 #1045NM
                 low = 0
-                high = 0.085
+                high = 0.0425
             case 3:
                 #2024
                 low = 0
@@ -140,7 +211,7 @@ def main():
             case 4:
                 #BR
                 low = 0.0
-                high = 0.005
+                high = 0.01
             case 5:
                 #PMMA
                 low = 0
@@ -148,7 +219,7 @@ def main():
             case 6:
                 #1045CR
                 low = 0
-                high = 0.04
+                high = 0.035
         
         material_label = material[4:-6]
         if material_label == "PMMA":
@@ -157,8 +228,8 @@ def main():
             material_label = "304SS"
 
         #TEMP
-        plt.axvline(low, color=COLORS[i])
-        plt.axvline(high, color=COLORS[i])
+        #plt.axvline(low, color=COLORS[i], ls="--")
+        #plt.axvline(high, color=COLORS[i], ls="--")
 
         plt.plot(strain, stress, color=COLORS[i], label=material_label)
         i+=1
@@ -167,6 +238,48 @@ def main():
     plt.grid()
     plt.legend()
     plt.savefig(os.path.join(IMAGES_DIR, 'stress_strain_plots_final.png'))
+    plt.close()
+
+    """
+    Deliverable 1 for lab 1
+    """
+    i = 0
+    plt.figure()
+    for material in file_names_lab1:
+        time, displacement, force, strain = dataset[i]
+        force = np.array(force)
+        strain = np.array(strain)
+        area = np.pi * (initial_gage_diameters[i]/2)**2
+        stress = force/area * 1000 #MPa
+
+        #['N02D1018CR_1.csv', 'N02D1045NM_1.csv', 'N02C7075_1.csv']
+        match i:
+            case 0:
+                #1018CR
+                low = 0.0
+                high = 0.01
+            case 1:
+                #1045NM
+                low = 0
+                high = 0.0125
+            case 2:
+                #7075
+                low = 0
+                high = 0.025
+        
+        material_label = material[4:-6]
+
+        #TEMP
+        #plt.axvline(low, color=COLORS[i])
+        #plt.axvline(high, color=COLORS[i])
+
+        plt.plot(strain, stress, color=COLORS[i], label=material_label)
+        i+=1
+    plt.xlabel("Strain (mm/mm)")
+    plt.ylabel("Stress (MPa)")
+    plt.grid()
+    plt.legend()
+    plt.savefig(os.path.join(IMAGES_DIR, 'stress_strain_plots_lab1.png'))
     plt.close()
 
     #Plotting PMMA
@@ -179,8 +292,8 @@ def main():
     plt.plot(strain, stress, color=COLORS[-2])
 
     #TEMP
-    plt.axvline(low, color=COLORS[-2])
-    plt.axvline(high, color=COLORS[-2])
+    #plt.axvline(low, color=COLORS[-2])
+    #plt.axvline(high, color=COLORS[-2])
 
     plt.xlabel("Strain (mm/mm)")
     plt.ylabel("Stress (MPa)")
@@ -221,6 +334,29 @@ def main():
         elongation_percents.append(elongation_percent)
         resilience_moduli.append(resilience_modulus)
         ultimate_strengths.append(ultimate_strength)
+
+    #['N02D1018CR_1.csv', 'N02D1045NM_1.csv', 'N02C7075_1.csv']
+    hardnesses_lab1 = [97.5, 88.5, 87.3]
+    initial_gage_diameters_lab1 = [12.68, 12.54, 7.23]
+    final_gage_diameters_lab1 = [12.67, 12.98, 5.94]
+    for k in range(len(file_names_lab1)):
+        time, displacement, force, strain = dataset_lab1[k]
+        force = np.array(force)
+        strain = np.array(strain)
+        area = np.pi * (initial_gage_diameters[k]/2)**2
+        stress = force/area * 1000
+        hardness = hardnesses_lab1[k]
+
+        print(strain)
+        
+        elastic_modulus, yield_strength, ultimate_strength, elongation_percent, resilience_modulus = find_properties(stress, strain, initial_gage_diameters_lab1[k], final_gage_diameters_lab1[k], k, True)
+
+        hardnesses.append(hardness)
+        elastic_moduli.append(elastic_modulus)
+        yield_strengths.append(yield_strength)
+        elongation_percents.append(elongation_percent)
+        resilience_moduli.append(resilience_modulus)
+        ultimate_strengths.append(ultimate_strength)
         
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
 
@@ -234,8 +370,6 @@ def main():
     ax2.set_xlabel('Rockwell Hardness B-scale (HRB)')
     ax2.set_ylabel('Strength (MPa)')
     ax2.legend(fontsize=7)
-    print(hardnesses)
-    print(yield_strengths)
     ax2.grid()
 
     ax3.scatter(hardnesses, elongation_percents, color=COLORS[3])
@@ -267,6 +401,36 @@ def main():
     plt.tight_layout()
     plt.savefig(os.path.join(IMAGES_DIR, f'{material_name}_dev3.png'))
     plt.close()
+
+    """
+    Calculating Area for Mason
+    """
+    i = 0
+    for material in file_names:
+        time, displacement, force, strain = dataset[i]
+        force = np.array(force)
+        strain = np.array(strain)
+        area = np.pi * (initial_gage_diameters[i]/2)**2
+        stress = force/area * 1000 #MPa
+
+        print(material + " integral:")
+        print(integrate_discrete(strain, stress))
+        print()
+        i+=1
+
+    i=0
+    for material in file_names_lab1:
+        time, displacement, force, strain = dataset_lab1[i]
+        force = np.array(force)
+        strain = np.array(strain)
+        area = np.pi * (initial_gage_diameters_lab1[i]/2)**2
+        stress = force/area * 1000 #MPa
+
+        print(material + " integral:")
+        print(integrate_discrete(strain, stress))
+        print()
+        i+=1
+
 
 if __name__ == "__main__":
     main()
