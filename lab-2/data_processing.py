@@ -185,6 +185,8 @@ def main():
     i = 0
     plt.figure()
     for material in file_names:
+        if material == "N02DBR_1.csv":
+            continue #comment out if you want brass in main graph
         time, displacement, force, strain = dataset[i]
         force = np.array(force)
         strain = np.array(strain)
@@ -236,20 +238,34 @@ def main():
     plt.xlabel("Strain (mm/mm)")
     plt.ylabel("Stress (MPa)")
     plt.grid()
+    '''uncomment for aluminum 7075 in main figure
+    initial_gage_diameters_lab1 = [12.68, 12.54, 7.23]
+    aluminum7075_data = dataset_lab1[-1]
+    time, displacement, force, strain = aluminum7075_data
+    stress = force / initial_gage_diameters_lab1[-1] * 1000
+    plt.plot(strain, stress, color='#ad9c6c', label="7075")
+    '''
     plt.legend()
+    plt.plot()
     plt.savefig(os.path.join(IMAGES_DIR, 'stress_strain_plots_final.png'))
     plt.close()
 
     """
     Deliverable 1 for lab 1
     """
+    hardnesses_lab1 = [97.5, 88.5, 87.3]
+    initial_gage_diameters_lab1 = [12.68, 12.54, 7.23]
+    final_gage_diameters_lab1 = [12.67, 12.98, 5.94]
+
     i = 0
     plt.figure()
     for material in file_names_lab1:
-        time, displacement, force, strain = dataset[i]
+        if material == 'N02C7075_1.csv':
+            continue
+        time, displacement, force, strain = dataset_lab1[i]
         force = np.array(force)
         strain = np.array(strain)
-        area = np.pi * (initial_gage_diameters[i]/2)**2
+        area = np.pi * (initial_gage_diameters_lab1[i]/2)**2
         stress = force/area * 1000 #MPa
 
         #['N02D1018CR_1.csv', 'N02D1045NM_1.csv', 'N02C7075_1.csv']
@@ -412,10 +428,11 @@ def main():
         strain = np.array(strain)
         area = np.pi * (initial_gage_diameters[i]/2)**2
         stress = force/area * 1000 #MPa
-
+        '''
         print(material + " integral:")
         print(integrate_discrete(strain, stress))
         print()
+        '''
         i+=1
 
     i=0
@@ -425,10 +442,11 @@ def main():
         strain = np.array(strain)
         area = np.pi * (initial_gage_diameters_lab1[i]/2)**2
         stress = force/area * 1000 #MPa
-
+        '''
         print(material + " integral:")
         print(integrate_discrete(strain, stress))
         print()
+        '''
         i+=1
 
 
