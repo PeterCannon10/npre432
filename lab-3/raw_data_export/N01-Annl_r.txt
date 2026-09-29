@@ -1,0 +1,5 @@
+*Rockwell Scale B (HRB)I	II	III	IV	V	VI	VII	VIII
+Original Hardness (on Edge)36.7	36.1	35.3	34.4	34.1	35.2	33.9	34.6
+Rolled Hardness (on Mark)64.3	67.3	69.4	64.2	69.3	69.8	70.7	74.3
+64.4	68.3	71.2	63.2	67.2	68.9	70.7	71.8
+65.5	68.0	75.0	63.0	61.1	67.8	70.6	72.5
