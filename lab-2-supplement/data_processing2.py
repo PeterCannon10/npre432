@@ -245,6 +245,7 @@ def main():
     plt.legend()
     plt.xlabel("Strain (mm/mm)")
     plt.ylabel("Stress (MPa)")
+    plt.show()
     plt.savefig(os.path.join(FIG_DIR, 'br_plot.png'))
     plt.close()
 
@@ -406,6 +407,8 @@ def main():
     plt.ylabel("Stress (MPa)")
     plt.savefig(os.path.join(FIG_DIR, 'combined_stress_strain_plots.png'))
     plt.close()
+
+    print(file_names, correct_hardness())
 
     return None
 
